@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     	xmlns:cxf="http://cxf.apache.org/core"
+     	xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:jaxws="http://cxf.apache.org/jaxws"
+		xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+		xsi:schemaLocation="
+			http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
+			http://www.springframework.org/schema/beans 
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+			 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd">
+
+	<import resource="classpath:META-INF/cxf/cxf.xml"/>
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+	
+	<context:annotation-config />
+	<context:component-scan base-package="server.service" />
+
+    <cxf:bus>
+        <cxf:features>
+            <cxf:logging/>
+        </cxf:features>
+    </cxf:bus>
+
+	<bean id="accountService" class="server.service.AccountService" init-method="init"></bean>
+	<bean id="userService" class="server.service.UserServiceImpl"></bean>
+	<bean id="jsonProvider" 
+		class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+	
+  	<jaxrs:server id="accountrs" address="/restServices">
+  		<jaxrs:serviceBeans>
+  			<ref bean="accountService"/>
+  			<ref bean="userService"/>
+  		</jaxrs:serviceBeans>
+  		<jaxrs:providers>
+			<ref bean='jsonProvider' />
+		</jaxrs:providers>
+  	</jaxrs:server>
+  	
+  	
+  <!-- 	<jaxrs:client id="myClient" inheritHeaders="true" address="rservice" serviceClass="server.service.UserServiceImpl">
+  <jaxrs:headers>
+    <entry key="Accept" value="application/json"/>
+  </jaxrs:headers>
+</jaxrs:client> -->
+  	
+  	<!-- Swagger API listing resource -->
+	<bean id="swaggerResourceJSON"
+		class="com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON" />
+
+	<!-- Swagger writers -->
+	<bean id="resourceWriter"
+		class="com.wordnik.swagger.jaxrs.listing.ResourceListingProvider" />
+	<bean id="apiWriter"
+		class="com.wordnik.swagger.jaxrs.listing.ApiDeclarationProvider" />
+
+	<jaxrs:server address="/sw" id="swagger">
+		<jaxrs:serviceBeans>
+			<ref bean="swaggerResourceJSON" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+			<ref bean="resourceWriter" />
+			<ref bean="apiWriter" />
+		</jaxrs:providers>
+	</jaxrs:server>
+	
+	<bean id="swaggerConfig" class="com.wordnik.swagger.jaxrs.config.BeanConfig">
+		<property name="resourcePackage" value="server.service" />
+		<property name="version" value="2.0" />
+		<property name="basePath" value="http://localhost:8080/apache-cxf-sample/rest/restServices" />
+		<property name="title" value="Swagger UI Integration Sample" />
+		<property name="description"
+			value="Swagger UI Integration Sample for demonstrating its working." />
+		<property name="contact" value="veerababu.t@vertexcs.com" />
+		<property name="scan" value="true" />
+	</bean>
+
+</beans>
